@@ -4,26 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calcolo Orario di Uscita</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <h2>Calcolo Orario di Uscita</h2>
-    <label>Orario di entrata: <input type="time" id="entrata"></label>
-    <br>
-    
-    <h3>Pausa pranzo</h3>
-    <label><input type="checkbox" id="pausaBreve"> Pausa pranzo breve (10 min)</label>
-    <br>
-    <label>Uscita pausa: <input type="time" id="pausaUscita"></label>
-    <label>Entrata pausa: <input type="time" id="pausaEntrata"></label>
-    <br>
-    
-    <h3>Altre pause</h3>
-    <button onclick="aggiungiPausa()">Aggiungi pausa</button>
-    <div id="pause"></div>
-    
-    <h3>Orario di uscita previsto</h3>
-    <p id="uscitaPrevista">--:--</p>
-    
+    <div class="card">
+        <h2><b>Calcolo Orario di Uscita</b></h2>
+        <label>Orario di entrata: <input type="time" id="entrata"></label>
+        <br>
+        
+        <h3>Pausa pranzo</h3>
+        <label><input type="checkbox" id="pausaBreve"> Pausa pranzo breve (10 min)</label>
+        <br>
+        <label>Uscita pausa: <input type="time" id="pausaUscita"></label>
+        <label>Entrata pausa: <input type="time" id="pausaEntrata"></label>
+        <br>
+        
+        <h3>Altre pause</h3>
+        <div id="pause"></div>
+        <button onclick="aggiungiPausa()">Aggiungi pausa</button>
+        
+        <h3>Orario di uscita previsto</h3>
+        <p id="uscitaPrevista">--:--</p>
+    </div>
     <script>
         const ORE_LAVORO = 7;
         const MINUTI_LAVORO = 12;
