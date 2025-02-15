@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolo Orario di Uscita</title>
+</head>
+<body>
+    <h2>Calcolo Orario di Uscita</h2>
+    <label>Orario di entrata: <input type="time" id="entrata"></label>
+    <br>
+    
+    <h3>Pausa pranzo</h3>
+    <label><input type="checkbox" id="pausaBreve"> Pausa pranzo breve (10 min)</label>
+    <br>
+    <label>Uscita pausa: <input type="time" id="pausaUscita"></label>
+    <label>Entrata pausa: <input type="time" id="pausaEntrata"></label>
+    <br>
+    
+    <h3>Altre pause</h3>
+    <button onclick="aggiungiPausa()">Aggiungi pausa</button>
+    <div id="pause"></div>
+    
+    <h3>Orario di uscita previsto</h3>
+    <p id="uscitaPrevista">--:--</p>
+    
+    <script>
+        const ORE_LAVORO = 7;
+        const MINUTI_LAVORO = 12;
+        const STORAGE_KEY = `worktime_${new Date().toISOString().split('T')[0]}`;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            caricaDatiSalvati();
+            document.querySelectorAll("input").forEach(el => el.addEventListener("input", calcolaOrarioUscita));
+        });
+        
+        function calcolaOrarioUscita() {
+            const entrata = document.getElementById("entrata").value;
+            if (!entrata) return;
+            
+            let inizioLavoro = new Date(`1970-01-01T${entrata}:00`);
+            let minutiPausa = 0;
+            
+            if (document.getElementById("pausaBreve").checked) {
+                minutiPausa += 10;
+            } else {
+                const pausaUscita = document.getElementById("pausaUscita").value;
+                const pausaEntrata = document.getElementById("pausaEntrata").value;
+                if (pausaUscita && pausaEntrata) {
+                    minutiPausa += differenzaMinuti(pausaUscita, pausaEntrata);
+                }
+            }
+            
+            document.querySelectorAll(".pausa-extra").forEach(pa => {
+                const uscita = pa.querySelector(".uscita").value;
+                const entrata = pa.querySelector(".entrata").value;
+                if (uscita && entrata) {
+                    minutiPausa += differenzaMinuti(uscita, entrata);
+                }
+            });
+            
+            let uscitaPrevista = new Date(inizioLavoro.getTime() + (ORE_LAVORO * 60 + MINUTI_LAVORO + minutiPausa) * 60000);
+            document.getElementById("uscitaPrevista").textContent = uscitaPrevista.toTimeString().substring(0, 5);
+            salvaDati();
+        }
+        
+        function differenzaMinuti(orarioInizio, orarioFine) {
+            let inizio = new Date(`1970-01-01T${orarioInizio}:00`);
+            let fine = new Date(`1970-01-01T${orarioFine}:00`);
+            return (fine - inizio) / 60000;
+        }
+        
+        function aggiungiPausa() {
+            let div = document.createElement("div");
+            div.classList.add("pausa-extra");
+            div.innerHTML = `
+                <label>Uscita: <input type="time" class="uscita"></label>
+                <label>Entrata: <input type="time" class="entrata"></label>
+                <button onclick="rimuoviPausa(this)">Rimuovi</button>
+                <br>
+            `;
+            document.getElementById("pause").appendChild(div);
+            div.querySelectorAll("input").forEach(el => el.addEventListener("input", calcolaOrarioUscita));
+        }
+        
+        function rimuoviPausa(btn) {
+            btn.parentElement.remove();
+            calcolaOrarioUscita();
+        }
+        
+        function salvaDati() {
+            const dati = {
+                entrata: document.getElementById("entrata").value,
+                pausaBreve: document.getElementById("pausaBreve").checked,
+                pausaUscita: document.getElementById("pausaUscita").value,
+                pausaEntrata: document.getElementById("pausaEntrata").value,
+                pauseExtra: [...document.querySelectorAll(".pausa-extra")].map(pa => ({
+                    uscita: pa.querySelector(".uscita").value,
+                    entrata: pa.querySelector(".entrata").value
+                }))
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dati));
+        }
+        
+        function caricaDatiSalvati() {
+            const dati = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!dati) return;
+            
+            document.getElementById("entrata").value = dati.entrata || "";
+            document.getElementById("pausaBreve").checked = dati.pausaBreve || false;
+            document.getElementById("pausaUscita").value = dati.pausaUscita || "";
+            document.getElementById("pausaEntrata").value = dati.pausaEntrata || "";
+            
+            dati.pauseExtra.forEach(p => {
+                aggiungiPausa();
+                let pauseDivs = document.querySelectorAll(".pausa-extra");
+                let lastPausa = pauseDivs[pauseDivs.length - 1];
+                lastPausa.querySelector(".uscita").value = p.uscita;
+                lastPausa.querySelector(".entrata").value = p.entrata;
+            });
+            
+            calcolaOrarioUscita();
+        }
+    </script>
+</body>
+</html>
